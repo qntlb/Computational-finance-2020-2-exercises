@@ -21,7 +21,7 @@ import net.finmath.time.TimeDiscretizationFromArray;
 public final class BrownianTests {
 
 	/*
-	 * note: how to set some printing settings. We use objects of type DecimalFormat, which is a class that
+	 * note how to set some printing settings. We use objects of type DecimalFormat, which is a class that
 	 * extends DecimalFormat. At the right, you see the constructor.
 	 */
 	static final DecimalFormat FORMATTERPOSITIVE2 = new DecimalFormat("0.00");
