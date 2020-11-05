@@ -44,7 +44,7 @@ public final class BrownianTests {
 				dt //time step
 				);
 
-		// We generate a Two-dimensional Brownian motion
+		// We generate a 2-dimensional Brownian motion
 		final BrownianMotion brownian = new BrownianMotionFromMersenneRandomNumbers(
 				timeDiscretization, //the time discretization of the Brownian motion
 				2, // number of independent Brownian motions that we generate: this is a 2-dimensional Brownian Motion
@@ -74,25 +74,35 @@ public final class BrownianTests {
 		firstQuadraticVariationPath[0] = new RandomVariableFromDoubleArray(0.0 /*the time*/, 0.0 /*the value*/);
 		quadraticCovariationPath[0] = new RandomVariableFromDoubleArray(0.0 /*the time*/, 0.0 /*the value*/);
 
+		/*
+		 * here we create two objects of type RandomVariable, that during the for loop running in time
+		 * will store all the increments one by one. This is better than creating a new RandomVariable
+		 * every time.
+		 */
+		RandomVariable firstBrownianIncrement;
+		RandomVariable secondBrownianIncrement;
 		for (int timeIndex = 1; timeIndex < timeDiscretization.getNumberOfTimeSteps(); timeIndex++) {
+
+			//we fix it: in this way we don't have to call the method all every time we need the increment
+			firstBrownianIncrement = brownian.getBrownianIncrement(timeIndex, 0);
+			secondBrownianIncrement = brownian.getBrownianIncrement(timeIndex, 1);
 
 			// We get W(t+dt) from dW(t)
 
 			//first path
 			firstBrownianMotionPath[timeIndex] = firstBrownianMotionPath[timeIndex - 1]
-					.add(brownian.getBrownianIncrement(timeIndex, 0));
+					.add(firstBrownianIncrement);
 			//second path
 			secondBrownianMotionPath[timeIndex] = secondBrownianMotionPath[timeIndex - 1]
-					.add(brownian.getBrownianIncrement(timeIndex, 1));
-
+					.add(secondBrownianIncrement);
 
 			// We compute the quadratic variation of the first path
 			firstQuadraticVariationPath[timeIndex] = firstQuadraticVariationPath[timeIndex - 1]
-					.add(brownian.getBrownianIncrement(timeIndex, 0).squared());
+					.add(firstBrownianIncrement.squared());
 
 			// We compute the quadratic covariation of the two paths
 			quadraticCovariationPath[timeIndex] = quadraticCovariationPath[timeIndex - 1]
-					.add(brownian.getBrownianIncrement(timeIndex, 0).mult(brownian.getBrownianIncrement(timeIndex, 1)));
+					.add(firstBrownianIncrement.mult(secondBrownianIncrement));
 
 			/*
 			 * we print the results. Note the use of the NumberFormat.format method. And of course the
@@ -129,7 +139,7 @@ public final class BrownianTests {
 		System.out.println("Variance of the Quadratic Variation of the first Brownian motion at time " + time + " : "
 				+ firstQuadraticVariationPath[indexForTheGivenTime].getVariance()+ "\n");
 
-		// mean and variance of the quadratic variation of the tqo Brownian motions at the given time
+		// mean and variance of the quadratic variation of the two Brownian motions at the given time
 		System.out.println("Mean of the Quadratic Covariation of the two Brownian motions at time " + time + " : "
 				+ quadraticCovariationPath[indexForTheGivenTime].getAverage());
 		System.out.println("Variance of the Quadratic Covariation of the two Brownian motions at time " + time + " : "
