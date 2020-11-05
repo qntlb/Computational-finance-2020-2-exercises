@@ -2,6 +2,8 @@ package com.andreamazzon.recap;
 
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.finmath.exception.CalculationException;
 import net.finmath.functions.AnalyticFormulas;
@@ -40,7 +42,7 @@ public class CallWithFinmath {
 	public static void main(String[] args) throws CalculationException {
 
 		//process parameters
-		final double initialPrice = 100.0;
+		final double initialValue = 100.0;
 		final double volatility = 0.25; //the volatility of the underlying
 		final double riskFreeRate = 0;
 
@@ -59,18 +61,19 @@ public class CallWithFinmath {
 				numberOfTimeSteps, timeStep);
 
 		/*
-		 * look at the class: it links together the model, i.e., the specification of the dynamics
-		 * of the underlying, and the process, i.e., the discretization of the paths.
+		 * look at the private constructor in MonteCarloBlackScholesModel, line 95: it links together
+		 * the model, i.e., the specification of the dynamics of the underlying, and the process, i.e.,
+		 * the discretization of the paths.
 		 */
 		final AssetModelMonteCarloSimulationModel bsModel = new MonteCarloBlackScholesModel(
-				times, numberOfSimulations, initialPrice, riskFreeRate, volatility);
+				times, numberOfSimulations, initialValue, riskFreeRate, volatility);
 		final AbstractAssetMonteCarloProduct europeanOption = new EuropeanOption(maturity, strike);
 
 		//have a look at this class!
 		final double analyticValue = AnalyticFormulas.blackScholesOptionValue(
-				initialPrice, riskFreeRate, volatility, maturity, strike);
+				initialValue, riskFreeRate, volatility, maturity, strike);
 
-		//note the getValue method: where is getValue(0.0, model) implemented?
+		//note the getValue method: where is getValue(MonteCarloSimulationModel model) implemented?
 		final double monteCarloValue = europeanOption.getValue(bsModel);
 
 		System.out.println("B-S Monte Carlo value: " + FORMATTERPOSITIVE4.format(monteCarloValue)
@@ -103,7 +106,7 @@ public class CallWithFinmath {
 		 * of the underlying, and the process, i.e., the discretization of the paths.
 		 */
 		final AssetModelMonteCarloSimulationModel bsModelWithBrownianMotion = new MonteCarloBlackScholesModel(
-				initialPrice, riskFreeRate, volatility, brownianMotionForBlackScholes);
+				initialValue, riskFreeRate, volatility, brownianMotionForBlackScholes);
 
 		final double thirdMonteCarloValue = europeanOption.getValue(bsModelWithBrownianMotion);
 
@@ -111,6 +114,20 @@ public class CallWithFinmath {
 		+ "\n" + "Absolute percentage error: "
 		+ FORMATTERPOSITIVE4.format(Math.abs(analyticValue-thirdMonteCarloValue)/analyticValue*100) );
 
-
+		/*
+		 * We want now to get the price of the option for the same model,when the price is 10 euros higher.
+		 * In order to do this, we see now something a bit more advanced: we construct a map to be used in the
+		 * method getCloneWithModifiedData of MonteCarloBlackScholesModel.
+		 */
+		final double howMuchMore = 10;
+		/*
+		 * Map is an interface to map keys (given by strings in our case) to values (doubles in this case). HashMap is a class
+		 * implementing the interface.
+		 */
+		final Map<String, Object> modifiedInitialValue = new HashMap<String, Object>();
+		modifiedInitialValue.put("initialValue", initialValue + howMuchMore);
+		final AssetModelMonteCarloSimulationModel bsModelWithHigherInitialValue = bsModelWithBrownianMotion.getCloneWithModifiedData(modifiedInitialValue);
+		System.out.println("B-S Monte Carlo value with the modified initial value: " +
+				FORMATTERPOSITIVE4.format(europeanOption.getValue(bsModelWithHigherInitialValue)));
 	}
 }
