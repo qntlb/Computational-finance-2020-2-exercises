@@ -60,7 +60,7 @@ class CallWithFinmathTest {
 		final double analyticValue = AnalyticFormulas.blackScholesOptionValue(
 				initialPrice, riskFreeRate, volatility, maturity, strike);
 
-		//note the getValue method: where is getValue(0.0, model) implemented?
+		//note the getValue method: where is getValue(MonteCarloSimulationModel model) implemented?
 		final double monteCarloValue = europeanOption.getValue(bsModel);
 
 		final double absolutePercentageError = Math.abs(analyticValue-monteCarloValue)/analyticValue*100;

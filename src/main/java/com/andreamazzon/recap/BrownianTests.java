@@ -11,8 +11,10 @@ import net.finmath.time.TimeDiscretizationFromArray;
 
 /**
  *
- * This class gives an overview of the simulation of the Brownian Motion with the Finmath library, besides some
- * other functionalities.
+ * This class gives an overview of the simulation of the Brownian Motion with the Finmath library. In general,
+ * it has the goal to recap some fundamental interfaces of the Finmath library, like TimeDiscretization and
+ * RandomVariable, that constitute indeed the building blocks for the simulation of stochastic processes.
+ *
  *
  * @author: Andrea Mazzon
  *
@@ -30,9 +32,7 @@ public final class BrownianTests {
 	public static void main(final String[] args) {
 
 
-		// The parameters
-		final int numberOfPaths = 100000;//i.e., the number of simulated trajectories
-		final int seed = 1897;//this is the seed that we need to generate the random numbers
+		// The parameters for the TimeDiscretization object
 		final double firstTime = 0.0;
 		final double lastTime = 1.0;
 		final double dt = 0.01;//the time step
@@ -43,20 +43,6 @@ public final class BrownianTests {
 				(int) (lastTime / dt),//number of times
 				dt //time step
 				);
-
-		// We generate a 2-dimensional Brownian motion
-		final BrownianMotion brownian = new BrownianMotionFromMersenneRandomNumbers(
-				timeDiscretization, //the time discretization of the Brownian motion
-				2, // number of independent Brownian motions that we generate: this is a 2-dimensional Brownian Motion
-				numberOfPaths,//number of simulated paths
-				seed //the seed that is needed to generate the Mersenne random numbers (see line 141 of BrownianMotionFromMersenneRandomNumbers)
-				);
-
-		System.out.println("Average, variance and other properties of a BrownianMotion."
-				+ "\n Time step size (dt): " + dt + "  Number of path: " + numberOfPaths + "\n");
-		System.out.println("      " + "\t" + "  int dW_1 " + "\t" + "int dW_1 dW_1" + "\t" + "int dW_1 dW_2" + "\t");
-		System.out.println("time" + "\t" + " mean" + "\t" + " var" + "\t" + " mean" + "\t" + " var" + "\t" + " mean"
-				+ "\t" + " var");
 
 		final int numberOfTimes = timeDiscretization.getNumberOfTimes();
 
@@ -74,6 +60,18 @@ public final class BrownianTests {
 		firstQuadraticVariationPath[0] = new RandomVariableFromDoubleArray(0.0 /*the time*/, 0.0 /*the value*/);
 		quadraticCovariationPath[0] = new RandomVariableFromDoubleArray(0.0 /*the time*/, 0.0 /*the value*/);
 
+		//the parameters for the BrownianMotion object
+		final int numberOfPaths = 100000;//i.e., the number of simulated trajectories
+		final int seed = 1897;//this is the seed that we need to generate the random numbers
+
+		// We generate a 2-dimensional Brownian motion
+		final BrownianMotion brownian = new BrownianMotionFromMersenneRandomNumbers(
+				timeDiscretization, //the time discretization of the Brownian motion
+				2, // number of independent Brownian motions that we generate: this is a 2-dimensional Brownian Motion
+				numberOfPaths,//number of simulated paths
+				seed //the seed that is needed to generate the Mersenne random numbers (see line 141 of BrownianMotionFromMersenneRandomNumbers)
+				);
+
 		/*
 		 * here we create two objects of type RandomVariable, that during the for loop running in time
 		 * will store all the increments one by one. This is better than creating a new RandomVariable
@@ -81,6 +79,15 @@ public final class BrownianTests {
 		 */
 		RandomVariable firstBrownianIncrement;
 		RandomVariable secondBrownianIncrement;
+
+
+
+		System.out.println("Average, variance and other properties of a BrownianMotion."
+				+ "\n Time step size (dt): " + dt + "  Number of path: " + numberOfPaths + "\n");
+		System.out.println("      " + "\t" + "  int dW_1 " + "\t" + "int dW_1 dW_1" + "\t" + "int dW_1 dW_2" + "\t");
+		System.out.println("time" + "\t" + " mean" + "\t" + " var" + "\t" + " mean" + "\t" + " var" + "\t" + " mean"
+				+ "\t" + " var");
+
 		for (int timeIndex = 1; timeIndex < timeDiscretization.getNumberOfTimeSteps(); timeIndex++) {
 
 			//we fix it: in this way we don't have to call the method all every time we need the increment
