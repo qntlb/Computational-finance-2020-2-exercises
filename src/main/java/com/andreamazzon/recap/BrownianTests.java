@@ -98,7 +98,7 @@ public final class BrownianTests {
 
 			//first path
 			firstBrownianMotionPath[timeIndex] = firstBrownianMotionPath[timeIndex - 1]
-					.add(firstBrownianIncrement);
+					.add(firstBrownianIncrement);//B_(t_i)=B_(t_(i-1))+(B_(t_(i))-B_(t_(i-1)))
 			//second path
 			secondBrownianMotionPath[timeIndex] = secondBrownianMotionPath[timeIndex - 1]
 					.add(secondBrownianIncrement);
@@ -146,7 +146,7 @@ public final class BrownianTests {
 		System.out.println("Variance of the Quadratic Variation of the first Brownian motion at time " + time + " : "
 				+ firstQuadraticVariationPath[indexForTheGivenTime].getVariance()+ "\n");
 
-		// mean and variance of the quadratic variation of the two Brownian motions at the given time
+		// mean and variance of the quadratic covariation of the two Brownian motions at the given time
 		System.out.println("Mean of the Quadratic Covariation of the two Brownian motions at time " + time + " : "
 				+ quadraticCovariationPath[indexForTheGivenTime].getAverage());
 		System.out.println("Variance of the Quadratic Covariation of the two Brownian motions at time " + time + " : "

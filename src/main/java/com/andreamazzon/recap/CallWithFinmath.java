@@ -11,7 +11,6 @@ import net.finmath.montecarlo.BrownianMotion;
 import net.finmath.montecarlo.BrownianMotionFromMersenneRandomNumbers;
 import net.finmath.montecarlo.assetderivativevaluation.AssetModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.assetderivativevaluation.MonteCarloBlackScholesModel;
-import net.finmath.montecarlo.assetderivativevaluation.products.AbstractAssetMonteCarloProduct;
 import net.finmath.montecarlo.assetderivativevaluation.products.EuropeanOption;
 import net.finmath.time.TimeDiscretization;
 import net.finmath.time.TimeDiscretizationFromArray;
@@ -51,7 +50,7 @@ public class CallWithFinmath {
 		final double maturity = 1.0;
 
 		//simulation parameter
-		final int numberOfSimulations = 100000;//the number of paths simulated
+		final int numberOfSimulations = 500000;//the number of paths simulated
 
 		//time discretization parameters
 		final double initialTime = 0;
@@ -67,7 +66,7 @@ public class CallWithFinmath {
 		 */
 		final AssetModelMonteCarloSimulationModel bsModel = new MonteCarloBlackScholesModel(
 				times, numberOfSimulations, initialValue, riskFreeRate, volatility);
-		final AbstractAssetMonteCarloProduct europeanOption = new EuropeanOption(maturity, strike);
+		final EuropeanOption europeanOption = new EuropeanOption(maturity, strike);
 
 		//have a look at this class!
 		final double analyticValue = AnalyticFormulas.blackScholesOptionValue(
