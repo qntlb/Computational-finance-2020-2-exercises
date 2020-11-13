@@ -27,19 +27,31 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 	private final Integer underlyingIndex;//it can be useful if we have a multi-dimensional process. Otherwise, it is always 0
 	private final String nameOfUnderliyng;
 
+
 	/**
 	 * Construct a product representing an "asset or nothing" option on an asset S (where S is the asset with index
 	 * 0 from the model).
-	 * @param underlyingName Name of the underlying
 	 * @param maturity The maturity T in the option payoff S(T) 1_{S(T)>K}
 	 * @param strike The strike K in the option payoff S(T) 1_{S(T)>K}.
+	 * @param underlyingIndex The index of the underlying to be fetched from the model.
+	 * @param underlyingName Name of the underlying
 	 */
-	public AssetOrNothing(final String underlyingName, final double maturity, final double strike) {
-		super();
-		nameOfUnderliyng	= underlyingName;
+	public AssetOrNothing(final double maturity, final double strike, final int underlyingIndex, final String nameOfUnderliyng) {
 		this.maturity			= maturity;
 		this.strike				= strike;
-		underlyingIndex		= 0;
+		this.underlyingIndex	= underlyingIndex;
+		this.nameOfUnderliyng	= nameOfUnderliyng;
+	}
+
+	/**
+	 * Construct a product representing an "asset or nothing" option on an asset S (where S is the asset with index
+	 * 0 from the model).
+	 * @param maturity The maturity T in the option payoff S(T) 1_{S(T)>K}
+	 * @param strike The strike K in the option payoff S(T) 1_{S(T)>K}.
+	 * @param underlyingName Name of the underlying
+	 */
+	public AssetOrNothing(final double maturity, final double strike, final String nameOfUnderliyng) {
+		this(maturity, strike, 0, nameOfUnderliyng);
 	}
 
 	/**
@@ -50,11 +62,7 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 	 * @param underlyingIndex The index of the underlying to be fetched from the model.
 	 */
 	public AssetOrNothing(final double maturity, final double strike, final int underlyingIndex) {
-		super();
-		this.maturity			= maturity;
-		this.strike				= strike;
-		this.underlyingIndex	= underlyingIndex;
-		nameOfUnderliyng	= null;		// Use underlyingIndex
+		this(maturity, strike, underlyingIndex, null);
 	}
 
 	/**
@@ -63,7 +71,7 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 	 * @param strike The strike K in the option payoff max(S(T)-K,0).
 	 */
 	public AssetOrNothing(final double maturity, final double strike) {
-		this(maturity, strike, 0);
+		this(maturity, strike, 0, null);
 	}
 
 	/**
