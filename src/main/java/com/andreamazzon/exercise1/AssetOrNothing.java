@@ -5,10 +5,10 @@ import java.util.Map;
 
 import net.finmath.exception.CalculationException;
 import net.finmath.modelling.Model;
-import net.finmath.montecarlo.RandomVariableFromDoubleArray;
 import net.finmath.montecarlo.assetderivativevaluation.AssetModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.assetderivativevaluation.products.AbstractAssetMonteCarloProduct;
 import net.finmath.stochastic.RandomVariable;
+import net.finmath.stochastic.Scalar;
 
 /**
  * This class extends AbstractAssetMonteCarloProduct, and represents an "asset or nothing" option, that is,
@@ -67,8 +67,8 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 
 	/**
 	 * Construct a product representing an "asset or nothing" option on an asset S (where S the asset with index 0 from the model).
-	 * @param maturity The maturity T in the option payoff max(S(T)-K,0)
-	 * @param strike The strike K in the option payoff max(S(T)-K,0).
+	 * @param maturity The maturity T in the option payoff S(T) 1_{S(T)>K}
+	 * @param strike The strike K in the option payoff S(T) 1_{S(T)>K}.
 	 */
 	public AssetOrNothing(final double maturity, final double strike) {
 		this(maturity, strike, 0, null);
@@ -76,7 +76,7 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 
 	/**
 	 * This method returns the value random variable of the product within the specified model, evaluated at a given evalutationTime.
-	 * In this case, the product is an "asset or nothing" option, whose payoff is max(S(T)-K,0). Here S is the asset with index
+	 * In this case, the product is an "asset or nothing" option, whose payoff is S(T) 1_{S(T)>K}. Here S is the asset with index
 	 * underlyingIndex from the model.
 	 *
 	 * @param evaluationTime The time on which this products value should be observed.
@@ -91,7 +91,7 @@ public class AssetOrNothing extends AbstractAssetMonteCarloProduct {
 		final RandomVariable underlyingAtMaturity	= model.getAssetValue(maturity, underlyingIndex);
 
 		//the payoff. Note the application of the method choose. Note that the second argument must be of type RandomVariable!
-		RandomVariable values = underlyingAtMaturity.sub(strike).choose(underlyingAtMaturity, new RandomVariableFromDoubleArray(0.0));
+		RandomVariable values = (underlyingAtMaturity.sub(strike)).choose(underlyingAtMaturity, new Scalar(0.0));
 
 		//or:
 		//final DoubleUnaryOperator payoffFunction = (x) -> (x-strike>0?x:0);

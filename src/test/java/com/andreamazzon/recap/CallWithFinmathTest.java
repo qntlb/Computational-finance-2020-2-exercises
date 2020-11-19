@@ -48,6 +48,7 @@ class CallWithFinmathTest {
 		final TimeDiscretization times = new TimeDiscretizationFromArray(initialTime,
 				numberOfTimeSteps, timeStep);
 
+		final double tolerance = 0.05;
 		/*
 		 * look at the class: it links together the model, i.e., the specification of the dynamics
 		 * of the underlying, and the process, i.e., the discretization of the paths.
@@ -69,7 +70,7 @@ class CallWithFinmathTest {
 		+ "\n" + "Analytical value: " + FORMATTERPOSITIVE4.format(analyticValue) + "\n" + "Absolute percentage error: "
 		+ FORMATTERPOSITIVE4.format(absolutePercentageError)+ "\n" );
 
-		Assert.assertTrue(absolutePercentageError< 0.5);
+		Assert.assertTrue(absolutePercentageError< tolerance);
 	}
 
 }

@@ -38,11 +38,11 @@ class AssetOrNothingTest {
 		final double maturity = 1.0;
 
 		//simulation parameter
-		final int numberOfSimulations = 1000000;//the number of paths simulated
+		final int numberOfSimulations = 100000;//the number of paths simulated
 
 		//time discretization parameters
 		final double initialTime = 0;
-		final int numberOfTimeSteps = 100;
+		final int numberOfTimeSteps = 365;
 		final double timeStep = maturity / numberOfTimeSteps;
 		final TimeDiscretization times = new TimeDiscretizationFromArray(initialTime,
 				numberOfTimeSteps, timeStep);
@@ -53,6 +53,10 @@ class AssetOrNothingTest {
 		 */
 		final double tolerance = 0.5;
 
+		//have a look at this class!
+		final double analyticValueOfTheDelta = AnalyticFormulas.blackScholesOptionDelta(
+				initialPrice, riskFreeRate, volatility, maturity, strike);
+
 		/*
 		 * look at the class: it links together the model, i.e., the specification of the dynamics
 		 * of the underlying, and the process, i.e., the discretization of the paths.
@@ -61,20 +65,16 @@ class AssetOrNothingTest {
 				times, numberOfSimulations, initialPrice, riskFreeRate, volatility);
 		final AbstractAssetMonteCarloProduct assetOrNothingOption = new AssetOrNothing(maturity, strike);
 
-		//have a look at this class!
-		final double analyticValueOfTheDelta = AnalyticFormulas.blackScholesOptionDelta(
-				initialPrice, riskFreeRate, volatility, maturity, strike);
-
 		//note the getValue method: where is getValue(MonteCarloSimulationModel model) implemented?
 		final double monteCarloValue = assetOrNothingOption.getValue(bsModel)/initialPrice;
 
 		final double absolutePercentageError = Math.abs(analyticValueOfTheDelta-monteCarloValue)/analyticValueOfTheDelta*100;
 
+		Assert.assertEquals(0, absolutePercentageError, tolerance);
+
 		System.out.println("B-S Monte Carlo value: " + FORMATTERPOSITIVE4.format(monteCarloValue)
 		+ "\n" + "Analytical value: " + FORMATTERPOSITIVE4.format(analyticValueOfTheDelta) + "\n" + "Absolute percentage error: "
 		+ FORMATTERPOSITIVE4.format(absolutePercentageError)+ "\n" );
-
-		Assert.assertTrue(absolutePercentageError< tolerance);
 	}
 
 }

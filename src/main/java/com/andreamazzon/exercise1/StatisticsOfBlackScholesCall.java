@@ -5,7 +5,7 @@ import java.util.Random;
 
 import net.finmath.exception.CalculationException;
 import net.finmath.functions.AnalyticFormulas;
-import net.finmath.montecarlo.RandomVariableFromArrayFactory;
+import net.finmath.montecarlo.RandomVariableFromDoubleArray;
 import net.finmath.montecarlo.assetderivativevaluation.AssetModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.assetderivativevaluation.MonteCarloBlackScholesModel;
 import net.finmath.montecarlo.assetderivativevaluation.products.AbstractAssetMonteCarloProduct;
@@ -80,18 +80,18 @@ public class StatisticsOfBlackScholesCall {
 		for (int i = 1; i < numberOfPrices; i ++) {
 			seed = randomGenerator.nextInt();//random int
 			//note again the getCloneWithModifiedSeed: we don't have to bother constructing the object from scratch as before
-			bsModelWithModifiedDrift = bsModel.getCloneWithModifiedSeed(seed);
+			bsModelWithModifiedDrift =  bsModel.getCloneWithModifiedSeed(seed);
 			vectorOfPrices[i] = europeanOption.getValue(bsModelWithModifiedDrift);//we store the price
 		}
+
+		//now we wrap the array into one object of type RandomVariable. There are multiple ways to do this, here you can see two
+		//final RandomVariable priceRandomVariable = (new RandomVariableFromArrayFactory()).createRandomVariable(0.0, vectorOfPrices);
+		//or:
+		final RandomVariable priceRandomVariable = new RandomVariableFromDoubleArray(0.0, vectorOfPrices);
 
 		//have a look at this class!
 		final double analyticValue = AnalyticFormulas.blackScholesOptionValue(
 				initialValue, riskFreeRate, volatility, maturity, strike);
-
-		//now we wrap the array into one object of type RandomVariable. There are multiple ways to do this, here you can see two
-		final RandomVariable priceRandomVariable = (new RandomVariableFromArrayFactory()).createRandomVariable(0.0, vectorOfPrices);
-		//or:
-		//RandomVariable priceRandomVariable = new RandomVariableFromDoubleArray(0.0, vectorOfPrices);
 
 		//at this point, we can get our statistics "for free"
 		System.out.println("Analytic value= " + analyticValue);
