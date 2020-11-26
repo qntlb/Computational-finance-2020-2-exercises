@@ -57,13 +57,14 @@ public class EnhancedValueDoubleDifferentiable implements EnhancedValueDifferent
 		this.operator = operator;
 		this.arguments = arguments;
 		this.id = nextId.getAndIncrement();//here is the trick with the id!
+
 		//		System.out.println("id = " + this.id);
 		//		System.out.println("value = " + this.value);
 		//		if(this.operator != null) {
 		//			System.out.println("operator = " + this.operator.toString());
 		//		}
 		//		if(this.arguments != null) {
-		//			System.out.println(this.arguments.toString());
+		//			System.out.println("arguments = " + this.arguments.toString());
 		//		}
 		//		System.out.println();
 	}
@@ -151,12 +152,13 @@ public class EnhancedValueDoubleDifferentiable implements EnhancedValueDifferent
 		return new EnhancedValueDoubleDifferentiable(value + valueOf(x)*valueOf(y), Operator.ADDPRODUCT, List.of(this, (EnhancedValueDoubleDifferentiable)x,(EnhancedValueDoubleDifferentiable)y));
 	}
 
+
 	@Override
 	public String toString() {
 		return value.toString();
 	}
 
-	//FROM HERE ON: EVERYTHING ABOUT THE COMPUTATION OF THE DERIVIVATIVES
+	//FROM HERE ON: EVERYTHING ABOUT THE COMPUTATION OF THE DERIVATIVES
 
 	@Override
 	public EnhancedValue getDerivativeWithRespectTo(EnhancedValueDifferentiable x) {
@@ -182,7 +184,7 @@ public class EnhancedValueDoubleDifferentiable implements EnhancedValueDifferent
 		// the first one is the derivative of the node calling the method with respect to itself: equal to 1
 		derivativesWithRespectTo.put(this, 1.0);
 
-		// This creates an ordered set of objects, sorted ascending by their getID() value (first = highest ID)
+		// This creates an ordered set of objects, sorted ascending by their getID() value (last = highest ID)
 		final TreeSet<EnhancedValueDoubleDifferentiable> nodesToProcess = new TreeSet<>((o1,o2) -> o1.getID().compareTo(o2.getID()));
 
 		// Add the root note
@@ -233,28 +235,28 @@ public class EnhancedValueDoubleDifferentiable implements EnhancedValueDifferent
 			derivativesWithRespectTo.put(arguments.get(1), derivativesWithRespectTo.getOrDefault(arguments.get(1),0.0) + derivativesWithRespectTo.get(node) * arguments.get(0).asFloatingPoint());
 			break;
 		case DIV:
-			final double x = arguments.get(0).asFloatingPoint();
-			final double y = arguments.get(1).asFloatingPoint();
-			final double derivativeOfCurrentNode = derivativesWithRespectTo.get(node);
-			double derivativeOfFirstArgumentNode = derivativesWithRespectTo.getOrDefault(arguments.get(0),0.0);
-			double derivativeOfSecondArgumentNode = derivativesWithRespectTo.getOrDefault(arguments.get(1),0.0);
+			final double x = arguments.get(0).asFloatingPoint();//2
+			final double y = arguments.get(1).asFloatingPoint();//2
+			final double derivativeOfCurrentNode = derivativesWithRespectTo.get(node);//1
+			double derivativeOfFirstArgumentNode = derivativesWithRespectTo.getOrDefault(arguments.get(0),0.0);//0
 
 			// Update and store the derivative with respect to the first argument
-			derivativeOfFirstArgumentNode = derivativeOfFirstArgumentNode + derivativeOfCurrentNode * 1/y;//update
+			derivativeOfFirstArgumentNode = derivativeOfFirstArgumentNode + derivativeOfCurrentNode * 1/y;//update, 1/2
 			derivativesWithRespectTo.put(arguments.get(0), derivativeOfFirstArgumentNode);//store
 
 			// Update and store the derivative with respect to the second argument
-			derivativeOfSecondArgumentNode = derivativeOfSecondArgumentNode - derivativeOfCurrentNode * x/(y*y);//update
+			double derivativeOfSecondArgumentNode = derivativesWithRespectTo.getOrDefault(arguments.get(1),0.0);// 1/2
+			derivativeOfSecondArgumentNode = derivativeOfSecondArgumentNode - derivativeOfCurrentNode * x/(y*y);//update, 1/2 -2/4 = 0
 			derivativesWithRespectTo.put(arguments.get(1), derivativeOfSecondArgumentNode);//store
 			break;
 		case ADDPRODUCT:
-			final double firstNumberOfTheProduct = arguments.get(1).asFloatingPoint();
-			final double secondNumberOfTheProduct = arguments.get(2).asFloatingPoint();
-			final double derivativeOTheCurrentNode = derivativesWithRespectTo.get(node);
+			final double firstNumberOfTheProduct = arguments.get(1).asFloatingPoint();//7
+			final double secondNumberOfTheProduct = arguments.get(2).asFloatingPoint();//4
+			final double derivativeOTheCurrentNode = derivativesWithRespectTo.get(node);//1
 
 			// Update
-			derivativesWithRespectTo.put(arguments.get(0), derivativesWithRespectTo.getOrDefault(arguments.get(0),0.0) + derivativeOTheCurrentNode);
-			derivativesWithRespectTo.put(arguments.get(1), derivativesWithRespectTo.getOrDefault(arguments.get(1),0.0) + derivativeOTheCurrentNode * secondNumberOfTheProduct);
+			derivativesWithRespectTo.put(arguments.get(0), derivativesWithRespectTo.getOrDefault(arguments.get(0),0.0) + derivativeOTheCurrentNode);//1
+			derivativesWithRespectTo.put(arguments.get(1), derivativesWithRespectTo.getOrDefault(arguments.get(1),0.0) + derivativeOTheCurrentNode * secondNumberOfTheProduct);//5(that is, 4+1)
 			derivativesWithRespectTo.put(arguments.get(2), derivativesWithRespectTo.getOrDefault(arguments.get(2),0.0) + derivativeOTheCurrentNode * firstNumberOfTheProduct);
 			break;
 		case SQUARED:
