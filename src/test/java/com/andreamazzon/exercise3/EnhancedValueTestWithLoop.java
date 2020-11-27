@@ -20,7 +20,7 @@ import com.andreamazzon.exercise2.EnhancedValueDoubleDifferentiable;
 public class EnhancedValueTestWithLoop {
 
 	//first node of the tree
-	final EnhancedValueDifferentiable x =  new EnhancedValueDoubleDifferentiable(3.0);
+	final EnhancedValueDifferentiable x =  new EnhancedValueDoubleDifferentiable(1.0);
 	final double tolerance = 10E-15;//this is the machine precision error
 
 	//we need it no get the (double) value associated with the object representing the derivative
@@ -33,7 +33,7 @@ public class EnhancedValueTestWithLoop {
 		final int n = 100;
 
 		//at the beginning, the node has just a  value, 1. The we add the value of x at every step
-		EnhancedValueDifferentiable result =  new EnhancedValueDoubleDifferentiable(1.0);
+		EnhancedValueDifferentiable result =  new EnhancedValueDoubleDifferentiable(0.0);
 		//a way to write the function nx with a for loop
 		for (int i = 1; i<=n;i++) {
 			// note: when constructing the tree, these will be DIFFERENT nodes, DIFEFRENT objects
