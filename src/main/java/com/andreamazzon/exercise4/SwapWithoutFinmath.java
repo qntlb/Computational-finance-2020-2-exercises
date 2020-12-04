@@ -44,6 +44,14 @@ public class SwapWithoutFinmath implements Swap {
 	}
 
 	/*
+	 * The user may give the tenure structure not as TimeDiscretization, but as an array of doubles
+	 */
+	public SwapWithoutFinmath(double[] times, double[] curve, Boolean isBondCurve/*if false, we convert from Libors to bonds*/) {
+		//the tenure structure has same length as the curve
+		this(new TimeDiscretizationFromArray(times), curve, isBondCurve);
+	}
+
+	/*
 	 * If the settlement dates are evenly distributed, the user can directly give the time step
 	 * instead of the whole tenure structure
 	 */
@@ -65,15 +73,13 @@ public class SwapWithoutFinmath implements Swap {
 		final double firstBond = 1.0;//P(0;0)=1, we use it to calculate P(T_1;0)
 		final double firstLibor = libors[0];
 		//P(T_1)=P(T_0)/(1+L(T_0,T_1)*(T_1-T_0)) (easy computation from Definition 111 of the script)
-		derivedZeroBondCurve[0] = firstBond / (1.0 + firstLibor * swapDates.getTimeStep(0));//note that swapDates.getTime(0) is T_1
-		System.out.println(derivedZeroBondCurve[0]);
+		derivedZeroBondCurve[0] = firstBond / (1.0 + firstLibor * swapDates.getTime(0));//swapDates.getTime(0) is T_1, and we suppose T_0 = 0
 		for (int periodIndex = 1; periodIndex < curveLength; periodIndex ++) {
 			final double libor = libors[periodIndex]; //L(T_i,T_{i+1})
 
 			//P(T_{i+1})=P(T_i)/(1+L(T_i,T_{i+1})*(T_{i+1}-T_i)) (see definition 103 of the script)
 			derivedZeroBondCurve[periodIndex] = derivedZeroBondCurve[periodIndex - 1]
-					/ (1.0 + libor * swapDates.getTimeStep(periodIndex));
-			System.out.println(derivedZeroBondCurve[periodIndex]);
+					/ (1.0 + libor * swapDates.getTimeStep(periodIndex - 1));//swapDates.getTimeStep(periodIndex)=swapDates.geTime(periodIndex+1)-swapDates.geTime(periodIndex)
 		}
 		return derivedZeroBondCurve;
 	}
@@ -85,7 +91,8 @@ public class SwapWithoutFinmath implements Swap {
 		double annuity = 0.0;
 		// we compute the sum of the bonds multiplied by the time intervals
 		for (int couponIndex = 1; couponIndex < curveLength; couponIndex++) {
-			annuity += zeroBondCurve[couponIndex]*swapDates.getTimeStep(couponIndex);
+			//remember that zeroBondCurve[1]=P(T_2;0), ... ,zeroBondCurve[n-1]=P(T_n;0)
+			annuity += zeroBondCurve[couponIndex]*swapDates.getTimeStep(couponIndex - 1);
 		}
 		return annuity;
 	}
@@ -131,8 +138,7 @@ public class SwapWithoutFinmath implements Swap {
 		double sumOfFixedLegs = 0.0;
 
 		for (int couponIndex = 0; couponIndex < curveLength - 1; couponIndex++) {
-			sumOfFixedLegs += swapRates[couponIndex] * zeroBondCurve[couponIndex + 1]
-					* (swapDates.getTimeStep(couponIndex + 1));
+			sumOfFixedLegs += swapRates[couponIndex] * zeroBondCurve[couponIndex + 1] * swapDates.getTimeStep(couponIndex);
 		}
 		return sumOfFloatingLegs - sumOfFixedLegs;
 	}
