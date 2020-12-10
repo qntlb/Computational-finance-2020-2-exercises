@@ -14,6 +14,8 @@ import net.finmath.time.TimeDiscretizationFromArray;
 /**
  * This is a test class, testing if the swap rate computed by the class SwapWithoutFinmath
  * is such that the value of the swap contract associated to the computed swap rate is zero.
+ * We also check that the value of the par swap rate when we give the Libor rate curve is the same
+ * as the one computed giving the corresponding zero coupon curve.
  *
  * @author Andrea Mazzon
  */
