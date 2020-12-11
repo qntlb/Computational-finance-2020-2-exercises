@@ -18,7 +18,7 @@ import net.finmath.rootfinder.BisectionSearch;
 
 public class Bootstrap {
 
-	final ArrayList<Double> computedBonds = new ArrayList<Double>();
+	private final ArrayList<Double> computedBonds = new ArrayList<Double>();
 	/*
 	 * we use it in order to compute the bootstrapped bonds. We want it to be updated every time we get a new
 	 * bond (or two new bonds)
@@ -29,12 +29,15 @@ public class Bootstrap {
 
 	private final double yearFraction;
 
+	private final double firstBond;
+
 	public Bootstrap(Double firstBond, Double secondBond, double yearFraction) {
 		computedBonds.add(firstBond);//the first two bonds are given
 		computedBonds.add(secondBond);
 		computedBondsSize = 2;
 		this.sumOfBonds = secondBond;//the sum is initialized. Note: the first bond is not included!
 		this.yearFraction = yearFraction;
+		this.firstBond = firstBond;
 	}
 
 	/**
@@ -44,7 +47,7 @@ public class Bootstrap {
 	 *  @param parSwapRate, the par swap rate for the given period
 	 */
 	public void nextBondFromParSwapRate(double parSwapRate) {
-		final double newBond = (computedBonds.get(0) - yearFraction * parSwapRate * sumOfBonds) /
+		final double newBond = (firstBond - yearFraction * parSwapRate * sumOfBonds) /
 				(1 + parSwapRate * yearFraction);
 		sumOfBonds += newBond;//note: the sum is updated!
 		computedBonds.add(newBond);
@@ -63,9 +66,9 @@ public class Bootstrap {
 	 * @param tolerance, the tolerance to be given to the root finder algorithm: the algorithm gives us x_n as a root
 	 * of our function if |x_n-x_{n-1}| < tolerance, at the n-th iteration
 	 */
-	public void nextTwoBondsFromParSwapRate(double swapRate, double tolerance) {
+	public void nextTwoBondsFromParSwapRate(double swapRate) {
 
-		final double lastBond = computedBonds.get(computedBondsSize - 1);
+		final double lastBond = computedBonds.get(computedBondsSize - 1);//P(T_{k-2};0)
 		/*
 		 * We use the BisectionSearch class of the finmath library. It can be used to find the zero of monotone functions
 		 * on some interval, whose extremes are given in the constructor of the class. Here we know that the value of the
@@ -84,9 +87,9 @@ public class Bootstrap {
 
 			rootFinder.setValue(y);    //the algorithm is repeated for the new difference
 		}
-		final Double computedBond = rootFinder.getBestPoint();//P(T_n)
-		//P(T_{n-1}) is computed by interpolation of P(T_{n-2}) and P(T_n)
-		final Double interpolatedBond = interpolate(lastBond,computedBond);
+		final Double computedBond = rootFinder.getBestPoint();//P(T_k;0)
+		//P(T_{n-1}) is computed by interpolation of P(T_{k-2};0) and P(T_k;0)
+		final Double interpolatedBond = interpolate(lastBond,computedBond);//P(T_{k-1};0)
 		sumOfBonds += interpolatedBond + computedBond;
 		computedBonds.add(interpolatedBond);
 		computedBonds.add(computedBond);
@@ -117,5 +120,9 @@ public class Bootstrap {
 								interpolate(computedBonds.get(computedBondsSize - 1),missingBond)
 						+ missingBond))
 				- swapRate;
+	}
+
+	public ArrayList<Double> getBonds(){
+		return computedBonds;
 	}
 }

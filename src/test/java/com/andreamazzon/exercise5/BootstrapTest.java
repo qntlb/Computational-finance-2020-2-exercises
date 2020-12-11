@@ -1,6 +1,7 @@
 package com.andreamazzon.exercise5;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 /**
  * Zero coupon bond curve bootstrapping from swaps. If some values of the swap rate
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * two initial bonds along with a time step (semi-annual). We then iteratively call the methods nextBondFromParSwapRate
  * and nextTwoBondsFromParSwapRate: first we have semi-annual par swap rates, then only annual swap rates.
  *
- * @author andreamazzon
+ * @author Andrea Mazzon
  *
  */
 public class BootstrapTest {
@@ -25,7 +26,6 @@ public class BootstrapTest {
 	void testBootstrap() {
 
 		final DecimalFormat FORMATTERREAL4 = new DecimalFormat("0.0000");
-		final double tolerance = 1E-11;//tolerance for the root finder method
 		final double[] firstBonds = { 0.98, 0.975 };
 		final double yearFraction = 0.5;
 
@@ -43,13 +43,15 @@ public class BootstrapTest {
 
 		//now only the par swap rates for yearly maturities are given
 		for (final double annualSwapRate : annualSwapRates) {
-			bootstrap.nextTwoBondsFromParSwapRate(annualSwapRate,tolerance);
+			bootstrap.nextTwoBondsFromParSwapRate(annualSwapRate);
 		}
 
+		final ArrayList<Double> computedBonds = bootstrap.getBonds();
+
 		//print the value of the bonds
-		for (int i = 0; i <bootstrap.computedBonds.size(); i++) {
+		for (int i = 0; i <computedBonds.size(); i++) {
 			System.out.println("The value of the time " + yearFraction*(i+1) + " bond is : " +
-					FORMATTERREAL4.format(bootstrap.computedBonds.get(i)));
+					FORMATTERREAL4.format(computedBonds.get(i)));
 		}
 	}
 }
