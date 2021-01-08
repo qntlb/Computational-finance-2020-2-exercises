@@ -75,13 +75,13 @@ public class InterestRateProductsTest {
 
 		//price of the call option for our parameters, and our value of S_0
 		final double valueOfTheCall = AnalyticFormulas.blackScholesOptionValue(
-				initialSwapRate, 0.0, swaptionStrike, notional, swapRateVolatility);
+				initialSwapRate, 0.0, swapRateVolatility,  yearFraction, swaptionStrike);
 
 		final double valueOfTheCallDividedByInitial = valueOfTheCall/initialSwapRate;
 
 		//delta of the call option for our parameters, and our value of S_0
 		final double deltaOfTheCall = AnalyticFormulas.blackScholesOptionDelta(
-				initialSwapRate, 0.0, swaptionStrike, notional, swapRateVolatility);
+				initialSwapRate, 0.0, swapRateVolatility,  yearFraction, swaptionStrike);
 
 		//let's now investigate the behavior with respect to the value of P(T_1;0).
 		System.out.println("Call divided by initial value: " + FORMATTERREAL2.format(valueOfTheCallDividedByInitial)
