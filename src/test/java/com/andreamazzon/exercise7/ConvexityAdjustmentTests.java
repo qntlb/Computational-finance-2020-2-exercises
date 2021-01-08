@@ -1,6 +1,8 @@
 package com.andreamazzon.exercise7;
 
 
+import java.text.DecimalFormat;
+
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,8 @@ public class ConvexityAdjustmentTests {
 	@Test
 	void ConvexityAdjustmentTest() throws CalculationException {
 
+		final DecimalFormat FORMATTERREAL4 = new DecimalFormat("0.0000");
+
 		final double initialTime = 0;
 		final double fixingTime = 1;
 		final double maturityTime = 2;
@@ -33,7 +37,7 @@ public class ConvexityAdjustmentTests {
 		// floater price: N(P(T_1;0)-P(T_2;0))
 		final double analiticFloater = notional * (firstDiscountingFactor - secondDiscountingFactor);
 
-		System.out.println("Natural floater analytic price " + analiticFloater);
+		System.out.println("Natural floater analytic price " + FORMATTERREAL4.format(analiticFloater));
 
 		/*
 		 * we now want to compute the convexity adjustment: we need the LIBOR volatility
@@ -48,12 +52,12 @@ public class ConvexityAdjustmentTests {
 		final double analyticConvexityAdjustment = notional * secondDiscountingFactor * initialForwardLibor * initialForwardLibor
 				* floaterTimeInterval * floaterTimeInterval * Math.exp(liborVolatility * liborVolatility * fixingTime);
 
-		System.out.println("Convexity Adjustment analytic price " + analyticConvexityAdjustment);
+		//System.out.println("Convexity Adjustment analytic price " + analyticConvexityAdjustment);
 
 		// price of the natural floater + convexity adjustment
 		final double analyticFloaterInArrears = analiticFloater + analyticConvexityAdjustment;
 
-		System.out.println("Floater in arrears analytic price: " + analyticFloaterInArrears);
+		System.out.println("Floater in arrears analytic price: " + FORMATTERREAL4.format(analyticFloaterInArrears));
 		System.out.println();
 
 		// Monte Carlo implementation
@@ -85,15 +89,15 @@ public class ConvexityAdjustmentTests {
 		final double montecarloConvexityAdjustment = notional * secondDiscountingFactor * floaterTimeInterval * floaterTimeInterval
 				* finalLiborsSquare.getAverage();
 
-		final double MontecarloFloaterInArrears = montecarloFloater + montecarloConvexityAdjustment;
+		final double montecarloFloaterInArrears = montecarloFloater + montecarloConvexityAdjustment;
 
 		final double tolerance = 0.01; // we want the result to be accurate up to the 0.1 %
 
-		System.out.println("Natural floater MonteCarlo price " + montecarloFloater);
+		System.out.println("Natural floater MonteCarlo price " + FORMATTERREAL4.format(montecarloFloater));
 
-		System.out.println("Convexity adjustment MonteCarlo price " + montecarloConvexityAdjustment);
+		System.out.println("Convexity adjustment MonteCarlo price " + FORMATTERREAL4.format(montecarloConvexityAdjustment));
 
-		System.out.println("Floater in arrears MonteCarlo price " + MontecarloFloaterInArrears);
+		System.out.println("Floater in arrears MonteCarlo price " + FORMATTERREAL4.format(montecarloFloaterInArrears));
 
 		Assert.assertEquals(0,
 				(montecarloConvexityAdjustment - analyticConvexityAdjustment) / analyticConvexityAdjustment, tolerance);
