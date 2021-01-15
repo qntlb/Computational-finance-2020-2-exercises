@@ -171,6 +171,7 @@ public class InterestRateProducts {
 		// we know that initialSwapRate = (zeroBondCurve[0] - zeroBondCurve[curveLength - 1]) / annuity
 		final double annuity = (zeroBondCurve[0] - zeroBondCurve[curveLength - 1]) / initialSwapRate;
 		final double exerciseDate = tenureStructure.getTime(1); // T_1
+
 		return notional * annuity * AnalyticFormulas.blackScholesOptionValue(initialSwapRate, 0, swapRateVolatility,
 				exerciseDate, strike);
 	}
@@ -181,8 +182,8 @@ public class InterestRateProducts {
 	 * structure is constant.
 	 *
 	 * @param bondCurve,      the zero coupon bond curve
-	 * @param yearFraction,   the length of the intervals between payment dates
-	 * @param swapVolatility, the volatility of the swap process (log-normal
+	 * @param tenureStructure,    the payment dates, given as a TimeDiscretization.
+	 * @param swapRateVolatility, the volatility of the swap process (log-normal
 	 *                        dynamics)
 	 * @param strike,         the strike of the option: S_i=K for all i
 	 * @param notional,       i.e. N
@@ -196,8 +197,68 @@ public class InterestRateProducts {
 		final double initialSwapRate = mySwap.getParSwapRate(yearFraction);
 		final double annuity = (zeroBondCurve[0] - zeroBondCurve[curveLength - 1]) / initialSwapRate;
 		final double exerciseDate = yearFraction; // T_1
-		return notional * annuity
-				* AnalyticFormulas.blackScholesOptionValue(initialSwapRate, 0, swapRateVolatility, exerciseDate, strike);
+		return notional * annuity *
+				AnalyticFormulas.blackScholesOptionValue(initialSwapRate, 0, swapRateVolatility, exerciseDate, strike);
+
+	}
+
+
+	/**
+	 * Calculate the value of a swaption under the Bachelier model. The price of the
+	 * swaption is computed as the price of a call option on the par swap rate S,
+	 * times the annuity. For this reason, among other things we also need the
+	 * initial value of the par swap rate, in order to give it to the method
+	 * computing the value of the call option.
+	 *
+	 * @param bondCurve,      the zero coupon bond curve
+	 * @param yearFraction,   the length of the intervals between payment dates
+	 * @param swapRateVolatility, the volatility of the swap process (normal dynamics)
+	 * @param strike,         the strike of the option: S_i=K for all i
+	 * @param notional,       i.e. N
+	 */
+	public static double calculateSwaptionValueBachelier(double[] zeroBondCurve, TimeDiscretization tenureStructure,
+			double strike, double notional, double swapRateVolatility) {
+		final int curveLength = zeroBondCurve.length;
+		// we need id to compute annuity and par swap rate. Note the overloaded constructor with yearFraction
+		final Swap mySwap = new SwapWithoutFinmath(tenureStructure, zeroBondCurve, true);
+		// overloaded method: we save time
+		final double initialSwapRate = mySwap.getParSwapRate();
+		final double annuity = (zeroBondCurve[0] - zeroBondCurve[curveLength - 1]) / initialSwapRate;
+		final double exerciseDate = tenureStructure.getTime(1); // T_1
+		/*
+		 * note that you can also avoid to multiply by the annuity, and give annuity instead of 1 as payoffUnit
+		 * in AnalyticFormulas.bachelierOptionValue
+		 */
+		return notional  *
+				AnalyticFormulas.bachelierOptionValue(initialSwapRate, swapRateVolatility, exerciseDate, strike, annuity);
+
+	}
+
+	/**
+	 * Calculate the value of a swaption under the Bachelier model when the payment dates are evenly distributed,
+	 * i.e., when the time step of the tenure structure is constant.
+	 *
+	 * @param bondCurve,      the zero coupon bond curve
+	 * @param yearFraction,   the length of the intervals between payment dates
+	 * @param swapVolatility, the volatility of the swap process (normal dynamics)
+	 * @param strike,         the strike of the option: S_i=K for all i
+	 * @param notional,       i.e. N
+	 */
+	public static double calculateSwaptionValueBachelier(double[] zeroBondCurve, double yearFraction,
+			double strike, double notional, double swapRateVolatility) {
+		final int curveLength = zeroBondCurve.length;
+		// we need id to compute annuity and par swap rate. Note the overloaded constructor with yearFraction
+		final Swap mySwap = new SwapWithoutFinmath(yearFraction, zeroBondCurve, true);
+		// overloaded method: we save time
+		final double initialSwapRate = mySwap.getParSwapRate(yearFraction);
+		final double annuity = (zeroBondCurve[0] - zeroBondCurve[curveLength - 1]) / initialSwapRate;
+		final double exerciseDate = yearFraction; // T_1
+		/*
+		 * note that you can also avoid to multiply by the annuity, and give annuity instead of 1 as payoffUnit
+		 * in AnalyticFormulas.bachelierOptionValue
+		 */
+		return notional  *
+				AnalyticFormulas.bachelierOptionValue(initialSwapRate, swapRateVolatility, exerciseDate, strike, annuity);
 
 	}
 
