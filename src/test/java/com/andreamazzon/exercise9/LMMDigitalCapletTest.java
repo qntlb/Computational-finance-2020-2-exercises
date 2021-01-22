@@ -11,6 +11,7 @@ import net.finmath.marketdata.model.curves.DiscountCurve;
 import net.finmath.marketdata.model.curves.ForwardCurve;
 import net.finmath.montecarlo.interestrate.LIBORMarketModel;
 import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
+import net.finmath.montecarlo.interestrate.TermStructureModel;
 import net.finmath.time.TimeDiscretization;
 import net.finmath.time.TimeDiscretizationFromArray;
 
@@ -77,9 +78,16 @@ public class LMMDigitalCapletTest {
 		final TimeDiscretization simulationTimeDiscretization = new TimeDiscretizationFromArray(0.0,
 				(int) (liborRateTimeHorizon / simulationTimeStep), simulationTimeStep);
 
+		final TermStructureModel liborModel = myLiborMonteCarlo.getModel();
 		// getIntegratedLIBORCovariance() is defined in LIBORMarketModel: we need to downcast
-		final double[][][] integratedVarianceMatrix = ((LIBORMarketModel) myLiborMonteCarlo.getModel()).
+		final double[][][] integratedVarianceMatrix = ((LIBORMarketModel) liborModel).
 				getIntegratedLIBORCovariance(simulationTimeDiscretization);
+
+		//extract the discount curve (i.e., the zero coupon bonds curve) in order to get the analytical price
+		final DiscountCurve discountFactors = liborModel.getDiscountCurve();
+
+		//extract the forward curve (i.e., the Libor curve) in order to get the analytical price
+		final ForwardCurve forwards = liborModel.getForwardRateCurve();
 
 		System.out.println("Digital caplet prices:\n");
 
@@ -117,12 +125,6 @@ public class LMMDigitalCapletTest {
 					[maturityIndexInTheSimulationDiscretization][maturityIndex][maturityIndex];
 			final double variance = integratedVariance/optionMaturity;
 			final double standardDeviation = Math.sqrt(variance);
-
-			//extract the discount curve (i.e., the zero coupon bonds curve) in order to get the analytical price
-			final DiscountCurve discountFactors = myLiborMonteCarlo.getModel().getDiscountCurve();
-
-			//extract the forward curve (i.e., the Libor curve) in order to get the analytical price
-			final ForwardCurve forwards = myLiborMonteCarlo.getModel().getForwardRateCurve();
 
 			final double forward = forwards.getForward(null, optionMaturity);//L(T_i,T_{i+1};0)
 			final double discountFactor = discountFactors.getDiscountFactor(optionPaymentDate);//P(T_{i+1};0)

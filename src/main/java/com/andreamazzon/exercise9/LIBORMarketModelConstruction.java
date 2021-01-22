@@ -5,7 +5,6 @@ import net.finmath.marketdata.model.curves.ForwardCurve;
 import net.finmath.marketdata.model.curves.ForwardCurveInterpolation;
 import net.finmath.montecarlo.BrownianMotion;
 import net.finmath.montecarlo.BrownianMotionFromMersenneRandomNumbers;
-import net.finmath.montecarlo.interestrate.LIBORMarketModel;
 import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.interestrate.LIBORMonteCarloSimulationFromLIBORModel;
 import net.finmath.montecarlo.interestrate.models.LIBORMarketModelStandard;
@@ -15,7 +14,9 @@ import net.finmath.montecarlo.interestrate.models.covariance.LIBORCovarianceMode
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCovarianceModelFromVolatilityAndCorrelation;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORVolatilityModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORVolatilityModelFromGivenMatrix;
+import net.finmath.montecarlo.model.ProcessModel;
 import net.finmath.montecarlo.process.EulerSchemeFromProcessModel;
+import net.finmath.montecarlo.process.MonteCarloProcess;
 import net.finmath.time.TimeDiscretization;
 import net.finmath.time.TimeDiscretizationFromArray;
 
@@ -181,7 +182,7 @@ public class LIBORMarketModelConstruction {
 		 Combine the forward curve and the covariance model, together with the time discretization of the
 		 tenure structure, to define the model
 		 */
-		final LIBORMarketModel LIBORMarketModel = new LIBORMarketModelStandard(
+		final ProcessModel LIBORMarketModel = new LIBORMarketModelStandard(
 				LIBORPeriodDiscretization,
 				forwardCurve,
 				covarianceModel
@@ -195,7 +196,7 @@ public class LIBORMarketModelConstruction {
 				1897 // seed
 				);
 
-		final EulerSchemeFromProcessModel process = new
+		final MonteCarloProcess process = new
 				EulerSchemeFromProcessModel(LIBORMarketModel, brownianMotion);
 
 		//Step 9: give the Euler scheme to the constructor of LIBORMonteCarloSimulationFromLIBORModel

@@ -37,16 +37,18 @@ public class MyDigitalCaplet extends AbstractLIBORMonteCarloProduct {
 	public RandomVariable getValue(double evaluationTime,
 			TermStructureMonteCarloSimulationModel model) throws CalculationException {
 
+		//(T_{i+1)-T_i)1_(L(T_i,T_{i+1};T_i)-K)
 		final double	periodLength	= periodEnd - periodStart;
 
 		// Get the value of the LIBOR L_i at T_i: L(T_i,T_{i+1};T_i)
-		final RandomVariable	libor = model.getLIBOR(periodStart, periodStart, periodEnd);
+		final double simulationTime = periodStart;
+		final RandomVariable	libor = model.getLIBOR(simulationTime, periodStart, periodEnd);
 
 		final RandomVariable trigger	= libor.sub(strike);
 		//payoff = (T_{i+1}-T_i)1_{L(T_i)>K}
 		RandomVariable	values = trigger.choose(new Scalar(periodLength),new Scalar(0.0));
 
-		// Get numeraire at payment time: you then divide by N(T_2)
+		// Get numeraire at payment time: you then divide by N(T_{i+1})
 		final RandomVariable	numeraire = model.getNumeraire(periodEnd);
 
 		values = values.div(numeraire);
