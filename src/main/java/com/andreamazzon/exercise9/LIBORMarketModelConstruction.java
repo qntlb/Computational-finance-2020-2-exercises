@@ -1,8 +1,5 @@
 package com.andreamazzon.exercise9;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import net.finmath.exception.CalculationException;
 import net.finmath.marketdata.model.curves.ForwardCurve;
 import net.finmath.marketdata.model.curves.ForwardCurveInterpolation;
@@ -11,10 +8,12 @@ import net.finmath.montecarlo.BrownianMotionFromMersenneRandomNumbers;
 import net.finmath.montecarlo.interestrate.LIBORMarketModel;
 import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.interestrate.LIBORMonteCarloSimulationFromLIBORModel;
-import net.finmath.montecarlo.interestrate.models.LIBORMarketModelFromCovarianceModel;
 import net.finmath.montecarlo.interestrate.models.LIBORMarketModelStandard;
+import net.finmath.montecarlo.interestrate.models.covariance.LIBORCorrelationModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCorrelationModelExponentialDecay;
+import net.finmath.montecarlo.interestrate.models.covariance.LIBORCovarianceModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCovarianceModelFromVolatilityAndCorrelation;
+import net.finmath.montecarlo.interestrate.models.covariance.LIBORVolatilityModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORVolatilityModelFromGivenMatrix;
 import net.finmath.montecarlo.process.EulerSchemeFromProcessModel;
 import net.finmath.time.TimeDiscretization;
@@ -29,16 +28,18 @@ import net.finmath.time.TimeDiscretizationFromArray;
 public class LIBORMarketModelConstruction {
 
 	/**
-	 * It specifies and creates a Rebonato volatility structure, represented by a matrix,
-	 * for the LIBOR Market Model. In particular, we have
+	 * It specifies and creates a Rebonato volatility structure, represented by a matrix, for the LIBOR
+	 * Market Model. In particular, we have
+	 * dL_i(t_j)=\sigma_i(t_j)L_i(t_j)dW_i(t_j)
+	 * with
 	 * \sigma_i(t_j)=(a+b(T_i-t_j))\exp(-c(T_i-t_j))+d,
 	 * for t_j < T_i,
-	 * for four parameters a,b,c,d.
+	 * for four parameters a,b,c,d with b,c>0
 	 * @param a
 	 * @param b
 	 * @param c
 	 * @param d
-	 * @param simulationTimeDiscretization, the time discretization for the processes
+	 * @param simulationTimeDiscretization, the time discretization for the evolution of the processes
 	 * @param tenureStructureDiscretization, the tenure structure T_0 < T_1< ...<T_n
 	 * @return the matrix that represents the volatility structure: volatility[i,j]=sigma_j(t_i)
 	 */
@@ -52,9 +53,9 @@ public class LIBORMarketModelConstruction {
 
 		for (int timeIndex = 0; timeIndex < numberOfSimulationTimes; timeIndex++) {
 			for (int LIBORIndex = 0; LIBORIndex < numberOfTenureStructureTimes; LIBORIndex++) {
-				final double time = simulationTimeDiscretization.getTime(timeIndex);//t_j
-				final double maturity = tenureStructureDiscretization.getTime(LIBORIndex);//T_i
-				final double timeToMaturity = maturity - time;
+				final double currentTime = simulationTimeDiscretization.getTime(timeIndex);//t_j
+				final double currentMaturity = tenureStructureDiscretization.getTime(LIBORIndex);//T_i
+				final double timeToMaturity = currentMaturity - currentTime;
 				double instVolatility;
 				if (timeToMaturity <= 0) {
 					instVolatility = 0; // This forward rate is already fixed, no volatility
@@ -79,9 +80,15 @@ public class LIBORMarketModelConstruction {
 	 * @param fixingForGivenForwards: the times of the tenure structure where the initial
 	 * forwards (also called LIBORs if you want, here we stick to the name of the Finmath library) are given
 	 * @param givenForwards: the given initial forwards (from which the others are interpolated)
-	 * @param correlationDecayParam, parameter "a", a>0, for the correlation of the LIBORs:
-	 * \rho_{i,j}(t)=\exp(-a\rho|T_-T_j|)
-	 * @param a, the first term for the volatility structure
+	 * @param correlationDecayParam, parameter \alpha>0, for the correlation of the LIBORs: in particular, we have
+	 * dL_i(t_j)=\sigma_i(t_j)L_i(t_j)dW_i(t_j)
+	 * with
+	 * d<W_i,W_k>(t)= \rho_{i,k}(t)dt
+	 *  where
+	 * \rho_{i,j}(t)=\exp(-\alpha|T_i-T_k|)
+	 * @param a, the first term for the volatility structure: the volatility in the SDEs above is given by
+	 * \sigma_i(t_j)=(a+b(T_i-t_j))\exp(-c(T_i-t_j))+d,
+	 * for t_j < T_i.
 	 * @param b, the second term for the volatility structure
 	 * @param c, the third term for the volatility structure
 	 * @param d, the fourth term for the volatility structure
@@ -101,24 +108,28 @@ public class LIBORMarketModelConstruction {
 					throws CalculationException {
 		/*
 		 In order to simulate a LIBOR market model, we need to proceed along the following steps:
-		 1) provide the time discretization for the processes
+		 1) provide the time discretization for the evolution of the processes
 		 2) provide the time discretization of the tenure structure
-		 3) provide the observed term structure of LIBOR rates, and if needed interpolate the
-		 ones missing: in this way we obtain the initial values for the LIBOR processes
-		 4) create the volatility structure, i.e., the terms sigma_i(t_j), where sigma_i is
-		 the volatility of the i-th LIBOR.
-	 	 5) create the correlation structure, i.e., define \rho_{i,j}(t), correlation
-	 	 between LIBORs
-		 6) combine all steps 1 − 5 into a LIBOR market model
-		 7) create a Euler discretization of the model we defined in step 5
-		 8) merge together LIBOR market model and Euler scheme
+		 3) provide the observed term structure of the initial LIBOR rates (also called forwards, using the terminology
+		 of the Finmath library) and if needed interpolate the ones missing: in this way we obtain the initial values
+		 for the LIBOR processes
+		 4) create the volatility structure, i.e., the terms sigma_i(t_j) in
+		 	dL_i(t_j)=\sigma_i(t_j)L_i(t_j)dW_i(t_j)
+	 	 5) create the correlation structure, i.e., define the terms \rho_{i,j}(t) such that
+	 	 d<W_i,W_k>(t)= \rho_{i,k}(t)dt
+		 6) combine all steps 1, 2, 4, 5 to create a covariance model
+		 7) combine steps 2, 3, 6 to create the LIBOR model
+		 8) create a Euler discretization of the model we defined in step 7, specifying the model itself and
+		 a Brownian motion that uses the time discretization defined in step 1
+		 9) give the Euler scheme to the constructor of LIBORMonteCarloSimulationFromLIBORModel, to create an object of
+		 type LIBORModelMonteCarloSimulationModel
 		 */
 
-		// Step 1: create the time Discretization for the Monte Carlo simulation
-		final TimeDiscretization timeDiscretization = new TimeDiscretizationFromArray(0.0,
-				(int) (LIBORRateTimeHorizon / simulationTimeStep), simulationTimeStep);
+		// Step 1: create the time discretization for the simulation of the processes
+		final TimeDiscretization timeDiscretization = new TimeDiscretizationFromArray(
+				0.0, (int) (LIBORRateTimeHorizon / simulationTimeStep), simulationTimeStep);
 
-		// Step 2: create the time discretization for the simulation of the processes
+		// Step 2: create the time discretization for the tenure structure (i.e., the dates T_1,..,T_n)
 		final TimeDiscretization LIBORPeriodDiscretization = new
 				TimeDiscretizationFromArray(0.0, (int) (LIBORRateTimeHorizon /LIBORPeriodLength), LIBORPeriodLength);
 
@@ -130,7 +141,7 @@ public class LIBORMarketModelConstruction {
 		final ForwardCurve forwardCurve = ForwardCurveInterpolation.createForwardCurveFromForwards(
 				"forwardCurve", // name of the curve
 				fixingForGivenForwards, // fixings of the forward
-				givenForwards, // forwards
+				givenForwards, // the forwards we have
 				LIBORPeriodLength
 				);
 
@@ -139,14 +150,14 @@ public class LIBORMarketModelConstruction {
 				timeDiscretization,
 				LIBORPeriodDiscretization);
 
-		final LIBORVolatilityModelFromGivenMatrix volatilityModel =
+		final LIBORVolatilityModel volatilityModel =
 				new LIBORVolatilityModelFromGivenMatrix(timeDiscretization,
 						LIBORPeriodDiscretization, volatility);
 		/*
 		  Step 5
 		  Create a correlation model rho_{i,j} = exp(−a ∗ |T_i −T_j|)
 		 */
-		final LIBORCorrelationModelExponentialDecay correlationModel =
+		final LIBORCorrelationModel correlationModel =
 				new LIBORCorrelationModelExponentialDecay(
 						timeDiscretization,
 						LIBORPeriodDiscretization,
@@ -155,32 +166,28 @@ public class LIBORMarketModelConstruction {
 
 		/*
 		 Step 6
-		 Combine volatility model and correlation model to a covariance model
+		 Combine volatility model and correlation model, together with the two time discretizations,
+		 to get a covariance model
 		 */
-		final LIBORCovarianceModelFromVolatilityAndCorrelation covarianceModel =
+		final LIBORCovarianceModel covarianceModel =
 				new LIBORCovarianceModelFromVolatilityAndCorrelation(
 						timeDiscretization,
 						LIBORPeriodDiscretization,
 						volatilityModel,
 						correlationModel);
 
-		// Set model properties
-		final Map<String, String> properties = new HashMap<String, String >();
-
-		// We choose the simulation measure
-		properties.put("measure", LIBORMarketModelFromCovarianceModel.Measure.SPOT. name());
-
-		// We choose a log normal model
-		properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.LOGNORMAL.name());
-
-
+		/*
+		 Step 7
+		 Combine the forward curve and the covariance model, together with the time discretization of the
+		 tenure structure, to define the model
+		 */
 		final LIBORMarketModel LIBORMarketModel = new LIBORMarketModelStandard(
 				LIBORPeriodDiscretization,
 				forwardCurve,
 				covarianceModel
 				);
 
-		//Step 8: create an Euler discretization
+		//Step 8: create an Euler scheme of the LIBOR model defined above
 		final BrownianMotion brownianMotion = new BrownianMotionFromMersenneRandomNumbers(
 				timeDiscretization,
 				LIBORPeriodDiscretization.getNumberOfTimes()-1,//no factor reduction for now
@@ -191,6 +198,7 @@ public class LIBORMarketModelConstruction {
 		final EulerSchemeFromProcessModel process = new
 				EulerSchemeFromProcessModel(LIBORMarketModel, brownianMotion);
 
+		//Step 9: give the Euler scheme to the constructor of LIBORMonteCarloSimulationFromLIBORModel
 		return new LIBORMonteCarloSimulationFromLIBORModel(process);
 
 	}
