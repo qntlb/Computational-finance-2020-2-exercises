@@ -6,6 +6,7 @@ import com.andreamazzon.exercise9.LIBORMarketModelConstruction;
 
 import net.finmath.exception.CalculationException;
 import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
+import net.finmath.montecarlo.interestrate.products.AbstractLIBORMonteCarloProduct;
 
 /**
  * In this test class we print the value of an exchange option involving two LIBOR rates taken from a LIBOR market model,
@@ -25,13 +26,13 @@ public class MyExchangeOptionTest {
 		//parameters for the option
 
 		final double maturityDateFirstLibor = 2.0;
-		final double paymentDateFirstLibor = 3.0;
+		final double paymentDateFirstLibor = 2.5;
 
 		final double maturityDateSecondLibor = 4.0;
-		final double paymentDateSecondLibor = 5.0;
+		final double paymentDateSecondLibor = 4.5;
 		final double notional = 100;
 
-		final MyExchangeOption exchangeOption = new MyExchangeOption(maturityDateFirstLibor, paymentDateFirstLibor,
+		final AbstractLIBORMonteCarloProduct exchangeOption = new MyExchangeOption(maturityDateFirstLibor, paymentDateFirstLibor,
 				maturityDateSecondLibor, paymentDateSecondLibor);
 
 		//parameters for the LIBOR market model simulation
@@ -80,8 +81,7 @@ public class MyExchangeOptionTest {
 					+ "                                   "	+ FORMATTERREAL4.format(optionValue));
 
 			//rho_i = rho_0 + i * 0.1
-			currentCorrelationDecayParameter = correlationIndex * correlationStep +
-					initialCorrelationDecayParameter;
+			currentCorrelationDecayParameter = currentCorrelationDecayParameter += correlationStep;
 
 			correlationBetweenTheTwoLIBORs = Math.exp(-currentCorrelationDecayParameter*differenceBetweenMaturities);
 

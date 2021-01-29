@@ -253,7 +253,7 @@ public class LIBORMarketModelConstruction {
 		 * we downcast: we want the model to be of type LIBORMarketModel, because then we want it to be able
 		 * to call the method getCovarianceModel()
 		 */
-		final LIBORMarketModel model = (LIBORMarketModel) oldLIBORSimulation.getModel();
+		final LIBORMarketModel model =  (LIBORMarketModel) oldLIBORSimulation.getModel();
 
 		// covariance model: it is returned as an object of type LIBORCovarianceModel (the interface).
 		final LIBORCovarianceModel oldCovarianceModel = model.getCovarianceModel();
@@ -275,7 +275,7 @@ public class LIBORMarketModelConstruction {
 		final LIBORCovarianceModel newCovarianceModel= oldCovarianceModel.getCloneWithModifiedData(changeMap);
 
 		//new LIBOR model
-		final LIBORMarketModel newLiborMarketModel = model.getCloneWithModifiedCovarianceModel(newCovarianceModel);
+		final ProcessModel newLiborMarketModel = model.getCloneWithModifiedCovarianceModel(newCovarianceModel);
 
 		final IndependentIncrements brownianMotion = oldLIBORSimulation.getBrownianMotion();
 

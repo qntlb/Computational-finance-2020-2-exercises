@@ -113,7 +113,8 @@ public class LMMDigitalCapletTest {
 			final double periodLength = optionPaymentDate - optionMaturity;
 
 
-			// first we get of the volatility sigma_i(t_j). Here i = liborIndex, j = optionMaturityIndex.
+			// first we get of the volatility sigma_i(t_j). Here i = liborIndex, j =
+			//t_j = T_i.
 
 			/*
 			 * we need the index for the maturity also in the time discretization for the simulated processes,
