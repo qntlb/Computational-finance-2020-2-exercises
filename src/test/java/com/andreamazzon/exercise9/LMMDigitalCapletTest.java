@@ -71,9 +71,9 @@ public class LMMDigitalCapletTest {
 		 * In order to get the analytical prices, we need the volatilities sigma_i(t_j), for any index i moving
 		 * in the time discretization of the tenure structure and any t_j moving in the time discretization
 		 * of the simulation. In order to do this, we can use the method getIntegratedLIBORCovariance() of
-		 * LIBORMarketModel. It returns a three-dimensional matrix: its (i,j,k) element is the volatility of
-		 * the Libor L(T_j,T_{k+1}) at time t_i. We have to pass it the time discretization for the simulated
-		 * processes.
+		 * LIBORMarketModel. It returns a three-dimensional matrix: its (i,j,k) element is the integrated covariance
+		 * of the Libors L(T_j,T_{j+1}) and L(T_k,T_{k+1}), evaluated  at time t_i. We have to give it the time
+		 * discretization for the simulated processes.
 		 */
 		final TimeDiscretization simulationTimeDiscretization = new TimeDiscretizationFromArray(0.0,
 				(int) (liborRateTimeHorizon / simulationTimeStep), simulationTimeStep);
