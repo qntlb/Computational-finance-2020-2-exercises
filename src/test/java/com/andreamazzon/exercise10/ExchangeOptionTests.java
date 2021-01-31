@@ -8,6 +8,7 @@ import com.andreamazzon.exercise9.LIBORMarketModelConstruction;
 
 import net.finmath.exception.CalculationException;
 import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
+import net.finmath.montecarlo.interestrate.products.AbstractLIBORMonteCarloProduct;
 
 /**
  * In this test class we print the value of an exchange option involving two LIBOR rates taken from a LIBOR market model,
@@ -17,24 +18,23 @@ import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
  * @author Andrea Mazzon
  *
  */
-public class MyExchangeTest {
+public class ExchangeOptionTests {
+
 	static final DecimalFormat FORMATTERREAL2 = new DecimalFormat("0.00");
 	static final DecimalFormat FORMATTERREAL4 = new DecimalFormat(" 0.0000;-0.0000");
 
-
 	@Test
 	public void test() throws CalculationException {
-
 		//parameters for the option
 
 		final double maturityDateFirstLibor = 2.0;
-		final double paymentDateFirstLibor = 3.0;
+		final double paymentDateFirstLibor = 2.5;
 
 		final double maturityDateSecondLibor = 4.0;
-		final double paymentDateSecondLibor = 5.0;
+		final double paymentDateSecondLibor = 4.5;
 		final double notional = 100;
 
-		final MyExchangeOption exchangeOption = new MyExchangeOption(maturityDateFirstLibor, paymentDateFirstLibor,
+		final AbstractLIBORMonteCarloProduct exchangeOption = new MyExchangeOption(maturityDateFirstLibor, paymentDateFirstLibor,
 				maturityDateSecondLibor, paymentDateSecondLibor);
 
 		//parameters for the LIBOR market model simulation
@@ -74,7 +74,7 @@ public class MyExchangeTest {
 		//we do the for loop where the correlation decay parameter increases by 0.1 every time
 		final double correlationStep = 0.1;
 
-		System.out.println("Correlation decay parameter" + "\t" + "Correlation between the two LIBORs"+ "\t" + "Option value");
+		System.out.println("Correlation decayyyy parameter" + "\t" + "Correlation between the two LIBORs"+ "\t" + "Option value");
 
 		for (int correlationIndex = 1; correlationIndex <= 10; correlationIndex++) {
 
@@ -83,8 +83,7 @@ public class MyExchangeTest {
 					+ "                                   "	+ FORMATTERREAL4.format(optionValue));
 
 			//rho_i = rho_0 + i * 0.1
-			currentCorrelationDecayParameter = correlationIndex * correlationStep +
-					initialCorrelationDecayParameter;
+			currentCorrelationDecayParameter = currentCorrelationDecayParameter += correlationStep;
 
 			correlationBetweenTheTwoLIBORs = Math.exp(-currentCorrelationDecayParameter*differenceBetweenMaturities);
 
@@ -98,8 +97,6 @@ public class MyExchangeTest {
 		//we print the last ones
 		System.out.println(FORMATTERREAL2.format(currentCorrelationDecayParameter) + "\t"
 				+ "                         "	+ FORMATTERREAL2.format(correlationBetweenTheTwoLIBORs)
-				+ "                                   "		+ FORMATTERREAL4.format(optionValue));
-	}
+				+ "                                   "		+ FORMATTERREAL4.format(optionValue));	}
+
 }
-
-
