@@ -248,14 +248,11 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 		//		}
 
 		/*
-		 * Here we have to be careful: the fact that the STATE SPACE is "normal" means that the Euler Scheme is
-		 *	L(i+1) = L(i) + sigma_L DeltaW
-		 *	and not
-		 *	L(i+1) = L(i) * exp( sigma_L DeltaW ),
-		 *	NOT that the dynamics of the process themselves are meant to be normal. Now, since in BlendedLocalVolatilityModel
-		 *	we simulate the model as (a L0 + (1-a)L) F, if a = 0 (as it is the case for the log-normal DYNAMICS) and if F is
-		 *	specified by log-normal STATE SPACE, we would "multiply twice by L", and simulate something like
-		 *	dL_t = sigma_L L_t^2 dW_t.
+		 * Here we have to be careful: the fact that the STATE SPACE is "normal" means that you do not apply the exponential state-space
+		 * transformation that you apply instead when you simulate log-normal processes, NOT that the dynamics of the process themselves
+		 * are meant to be normal. Now, since in BlendedLocalVolatilityModel we simulate the model as (a L0 + (1-a)L) F, if a = 0
+		 * (as it is the case for the log-normal DYNAMICS) and if F is specified by log-normal STATE SPACE, we would "multiply twice by L",
+		 * and simulate something like	dL_t = sigma_L L_t^2 dW_t.
 		 *	So, we have always to specify the STATE SPACE to be NORMAL when we use BlendedLocalVolatilityModel.
 		 */
 		properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.NORMAL.name());
