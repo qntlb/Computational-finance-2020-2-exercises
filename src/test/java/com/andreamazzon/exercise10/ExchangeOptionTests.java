@@ -74,7 +74,7 @@ public class ExchangeOptionTests {
 		//we do the for loop where the correlation decay parameter increases by 0.1 every time
 		final double correlationStep = 0.1;
 
-		System.out.println("Correlation decayyyy parameter" + "\t" + "Correlation between the two LIBORs"+ "\t" + "Option value");
+		System.out.println("Correlation decay parameter" + "\t" + "Correlation between the two LIBORs"+ "\t" + "Option value");
 
 		for (int correlationIndex = 1; correlationIndex <= 10; correlationIndex++) {
 
