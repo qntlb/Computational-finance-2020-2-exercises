@@ -59,7 +59,7 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 	 * @param tenureStructureDiscretization, the tenure structure T_0 < T_1< ...<T_n
 	 * @return the matrix that represents the volatility structure: volatility[i,j]=sigma_j(t_i)
 	 */
-	private static double[][] createVolatilityStructure(
+	private static double[][] createVolatilityStructure(double a, double b,double c, double d,
 			TimeDiscretization simulationTimeDiscretization,
 			TimeDiscretization tenureStructureDiscretization,
 			Dynamics dynamics
@@ -79,19 +79,18 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 					instVolatility = 0; // This forward rate is already fixed, no volatility
 				}
 				else {
-					instVolatility = 0.3;//\sigma_i(t)=(a+b(T_i-t))\exp(-c(T_i-t))+d
+					instVolatility = d + (a + b * timeToMaturity)
+							* Math.exp(-c * timeToMaturity);//\sigma_i(t)=(a+b(T_i-t))\exp(-c(T_i-t))+d
 				}
-				//if (dynamics == Dynamics.NORMAL) {
-				//	instVolatility*=0.05;
-				//}
-
+				if (dynamics == Dynamics.NORMAL) {
+					instVolatility *= 0.05;
+				}
 				// Store
 				volatility[timeIndex][LIBORIndex] = instVolatility;
 			}
 		}
 		return volatility;
 	}
-
 	/**
 	 * It simulates a LIBOR Market Model, by using the implementation of the Finmath library.
 	 * @param numberOfPaths: number of simulations
@@ -116,8 +115,7 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 	 * @return an object implementing LIBORModelMonteCarloSimulationModel, i.e., representing the simulation of a LMM
 	 * @throws CalculationException
 	 */
-	public static LIBORModelMonteCarloSimulationModel
-	createLIBORMarketModel(int numberOfPaths,
+	public static final LIBORModelMonteCarloSimulationModel createLIBORMarketModel(int numberOfPaths,
 			double simulationTimeStep,
 			double LIBORPeriodLength, //T_i-T_{i-1}, we suppose it to be fixed
 			double LIBORRateTimeHorizon, //T_n
@@ -125,7 +123,8 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 			double[] givenForwards,
 			double correlationDecayParam, // decay of the correlation between LIBOR rates
 			Dynamics dynamics,
-			Measure measureType
+			Measure measureType,
+			double a, double b, double c, double d
 			)
 					throws CalculationException {
 		/*
@@ -176,6 +175,7 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 
 		// Step 4, the volatility model: we only have to provide the matrix
 		final double[][] volatility = createVolatilityStructure(
+				a, b, c, d,
 				timeDiscretization,
 				LIBORPeriodDiscretization, dynamics);
 
@@ -222,6 +222,7 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 
 		final AbstractLIBORCovarianceModel covarianceModelBlended = new BlendedLocalVolatilityModel(
 				covarianceModel, forwardCurve, parameterForBlended, false);
+		//d\bar L = \bar L sigma dW
 
 		//final AbstractLIBORCovarianceModel covarianceModelBlended = covarianceModel;
 
@@ -245,6 +246,13 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 		//			properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.NORMAL.name());
 		//		} else {
 		//			properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.LOGNORMAL.name());
+		//		}
+
+
+		//		if (dynamics == Dynamics.NORMAL) {
+		//			properties.put("stateSpace", "normal");
+		//		} else {
+		//			properties.put("stateSpace",  "lognormal");
 		//		}
 
 		/*
@@ -271,7 +279,10 @@ public class LIBORMarketModelConstructionWithDynamicsAndMeasureSpecification {
 		final ProcessModel LIBORMarketModel = new LIBORMarketModelFromCovarianceModel(
 				LIBORPeriodDiscretization, null /* analyticModel */, forwardCurve, discountCurve, randomVariableFactory,
 				covarianceModelBlended, calibrationItems, properties);
+		//d\bar L = \bar L sigma dW
+		//L=exp(\bar L)
 
+		//dL=L^2 sigma dW_t
 
 		//Step 9: create an Euler scheme of the LIBOR model defined above
 		final BrownianMotion brownianMotion = new BrownianMotionFromMersenneRandomNumbers(

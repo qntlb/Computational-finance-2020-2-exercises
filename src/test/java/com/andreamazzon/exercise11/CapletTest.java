@@ -40,6 +40,8 @@ public class CapletTest {
 
 	final double correlationDecayParameter = 0.5;
 
+	final double a = 0.2, b = 0.1, c = 0.15, d = 0.3; //volatility structure
+
 	//parameters to be given to the constructor of the finmath library Caplet class
 	final double maturityOfTheCaplet = 4.0;
 	final double periodLengthOfTheCaplet = LIBORTimeStep;
@@ -73,8 +75,13 @@ public class CapletTest {
 							forwardsForCurve,
 							correlationDecayParameter, // decay of the correlation between LIBOR rates
 							typeOfDynamics, //first log-normal dynamics then normal dynamics
-							Measure.TERMINAL //we specify that we consider the dynamics under the terminal measure
+							Measure.TERMINAL, //we specify that we consider the dynamics under the terminal measure
+							a, b, c, d
 							);
+
+			final double numeraireAtGivenTime = lmm.getNumeraire(4.0).getAverage();
+			System.out.println("The Numeraire in time t = 0 is " + numeraireAtGivenTime + " with measure " + typeOfDynamics);
+
 
 			//we want two List<Double> objects for the method  Plots.createScatter: strikes and prices
 			final List<Double> strikes = new ArrayList<Double>();
@@ -129,7 +136,8 @@ public class CapletTest {
 							forwardsForCurve,
 							correlationDecayParameter, // decay of the correlation between LIBOR rates
 							typeOfDynamics, //first log-normal dynamics then normal dynamics
-							Measure.TERMINAL //we specify that we consider the dynamics under the terminal measure
+							Measure.TERMINAL, //we specify that we consider the dynamics under the terminal measure
+							a, b, c, d
 							);
 
 			//we want two List<Double> objects for the method  Plots.createScatter: strikes and implied volatilities
@@ -163,7 +171,7 @@ public class CapletTest {
 				dynamics = "normal";
 			}
 
-			Plots.createScatter(strikes, impliedVolatilities, 0.0, 0.2, 5)
+			Plots.createScatter(strikes, impliedVolatilities, 0.0, maxStrike * 1.5, dotSizeForPlot)
 			.setTitle("Caplet implied volatility using " + dynamics + " dynamics.")
 			.setXAxisLabel("strike")
 			.setYAxisLabel("price")
@@ -195,7 +203,8 @@ public class CapletTest {
 							forwardsForCurve,
 							correlationDecayParameter, // decay of the correlation between LIBOR rates. Initially zero
 							Dynamics.LOGNORMAL, //we specify that we want log-normal dynamics
-							typeOfMeasure //first we consider the terminal measure, then the spot measure
+							typeOfMeasure, //first we consider the terminal measure, then the spot measure
+							a, b, c, d
 							);
 
 			//we want two List<Double> objects for the method  Plots.createScatter: strikes and prices
@@ -220,6 +229,9 @@ public class CapletTest {
 			} else {
 				measure = "spot";
 			}
+
+			final double numeraireAtGivenTime = lmm.getNumeraire(0.0).getAverage();
+			System.out.println("The Numeraire in time t = 0 is " + numeraireAtGivenTime + " with measure " + measure);
 
 			Plots.createScatter(strikes, prices, 0.0, 0.2, 5)
 			.setTitle("Caplet price using the " + measure + " measure.")
