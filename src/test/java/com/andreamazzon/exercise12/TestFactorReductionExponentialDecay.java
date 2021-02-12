@@ -19,7 +19,7 @@ public class TestFactorReductionExponentialDecay {
 
 	public static void main(String[] args) throws CalculationException {
 
-		final double initialTime = 1.0;
+		final double initialTime = 0.0;
 		final double finalTime = 10.0;
 		final double yearFraction = 0.5;
 		final int numberOfTimeSteps = (int) ((finalTime-initialTime)/yearFraction);
@@ -30,12 +30,12 @@ public class TestFactorReductionExponentialDecay {
 		final FactorReductionExponentialDecay factorReduction = new
 				FactorReductionExponentialDecay(liborPeriodDiscretization);
 
-		final int numberOfFactors = 2;
+		final int numberOfFactors = 10;
 
 		double averageError;
 
 		System.out.println("Correlation decay parameter" + "\t" + "Average relative difference between the entries of the matrices");
-		for (double corrDecay = 0; corrDecay <= 1; corrDecay += 0.1) {
+		for (double corrDecay = 0; corrDecay <= 4; corrDecay += 0.1) {
 			averageError= factorReduction.getErrorFromFactorReduction(corrDecay, numberOfFactors);
 			System.out.println(FORMATTERREAL2.format(corrDecay) + "                            " + FORMATTERREAL2.format(averageError));
 		}
