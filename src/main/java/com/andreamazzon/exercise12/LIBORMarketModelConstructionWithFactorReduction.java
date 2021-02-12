@@ -283,7 +283,7 @@ public class LIBORMarketModelConstructionWithFactorReduction {
 
 		//dL=L^2 sigma dW_t
 
-		//Step 9: create an Euler scheme of the LIBOR model defined above
+		//Step 9: create an Euler scheme of the LIBOR model defined above, possibly with factor reduction
 		final BrownianMotion brownianMotion = new BrownianMotionFromMersenneRandomNumbers(
 				timeDiscretization,
 				numberOfFactors,//here we maybe perform factor reduction
