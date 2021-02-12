@@ -97,6 +97,6 @@ public class ExchangeOptionTests {
 		//we print the last ones
 		System.out.println(FORMATTERREAL2.format(currentCorrelationDecayParameter) + "\t"
 				+ "                         "	+ FORMATTERREAL2.format(correlationBetweenTheTwoLIBORs)
-				+ "                                   "		+ FORMATTERREAL4.format(optionValue));	}
-
+				+ "                                   "		+ FORMATTERREAL4.format(optionValue));
+	}
 }
