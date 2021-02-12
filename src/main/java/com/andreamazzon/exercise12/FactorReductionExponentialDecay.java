@@ -116,7 +116,7 @@ public class FactorReductionExponentialDecay {
 								- reducedCorrelationMatrix[component1][component2]);
 			}
 		}
-		final double averageDiffCorrelation = 2.0 * diffCorrelation/(numberOfTimeSteps*numberOfTimeSteps);
+		final double averageDiffCorrelation = 2.0 * diffCorrelation/(numberOfTimeSteps*(numberOfTimeSteps-1));
 		return averageDiffCorrelation;
 	}
 }
