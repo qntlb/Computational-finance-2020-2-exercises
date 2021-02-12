@@ -17,6 +17,7 @@ import net.finmath.montecarlo.interestrate.LIBORModelMonteCarloSimulationModel;
 import net.finmath.montecarlo.interestrate.LIBORMonteCarloSimulationFromLIBORModel;
 import net.finmath.montecarlo.interestrate.models.LIBORMarketModelFromCovarianceModel;
 import net.finmath.montecarlo.interestrate.models.covariance.AbstractLIBORCovarianceModel;
+import net.finmath.montecarlo.interestrate.models.covariance.BlendedLocalVolatilityModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCorrelationModel;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCorrelationModelExponentialDecay;
 import net.finmath.montecarlo.interestrate.models.covariance.LIBORCovarianceModelFromVolatilityAndCorrelation;
@@ -82,9 +83,9 @@ public class LIBORMarketModelConstructionWithFactorReduction {
 					instVolatility = d + (a + b * timeToMaturity)
 							* Math.exp(-c * timeToMaturity);//\sigma_i(t)=(a+b(T_i-t))\exp(-c(T_i-t))+d
 				}
-				if (dynamics == Dynamics.NORMAL) {
-					instVolatility *= 0.05;
-				}
+				//if (dynamics == Dynamics.NORMAL) {
+				//	instVolatility *= 0.05;
+				//}
 				// Store
 				volatility[timeIndex][LIBORIndex] = instVolatility;
 			}
@@ -224,11 +225,11 @@ public class LIBORMarketModelConstructionWithFactorReduction {
 		 */
 		final double parameterForBlended = isLogNormal ? 0.0 : 1.0;
 
-		//final AbstractLIBORCovarianceModel covarianceModelBlended = new BlendedLocalVolatilityModel(
-		//		covarianceModel, forwardCurve, parameterForBlended, false);
+		final AbstractLIBORCovarianceModel covarianceModelBlended = new BlendedLocalVolatilityModel(
+				covarianceModel, forwardCurve, parameterForBlended, false);
 		//d\bar L = \bar L sigma dW
 
-		final AbstractLIBORCovarianceModel covarianceModelBlended = covarianceModel;
+		//final AbstractLIBORCovarianceModel covarianceModelBlended = covarianceModel;
 
 		//Step 8: we now create the model (i.e., the object of type LiborMarketModel)
 		// Set model properties
@@ -254,13 +255,7 @@ public class LIBORMarketModelConstructionWithFactorReduction {
 		 * and simulate something like	dL_t = sigma_L L_t^2 dW_t.
 		 *	So, we have always to specify the STATE SPACE to be NORMAL when we use BlendedLocalVolatilityModel.
 		 */
-		//properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.NORMAL.name());
-
-		if (dynamics == Dynamics.NORMAL) {
-			properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.NORMAL.name());
-		} else {
-			properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.LOGNORMAL.name());
-		}
+		properties.put("stateSpace", LIBORMarketModelFromCovarianceModel.StateSpace.NORMAL.name());
 
 
 		//		if (dynamics == Dynamics.NORMAL) {
